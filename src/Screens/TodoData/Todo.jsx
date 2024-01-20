@@ -11,100 +11,103 @@ import { DB, auth } from '../../Config/FirebaseConfig/FirebaseConfig.js';
 import { onChildAdded, push, ref, remove, set, update } from 'firebase/database';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
+import { signOut } from "firebase/auth";
 import { Box, Button, Typography } from '@mui/material';
 
 const Todo = () => {
 
   const navigate = useNavigate();
   const [inpValue, setInpValue] = useState('');
-  const [todos, setTodos] = useState([])
-  const [Data, setData] = useState([])
-  const [user, setUser] = useState('')
+  const [todos,setTodos] = useState([]);
+  const [userUID , setUserUID] = useState('');
+  const [Data , setData] = useState([]);
 
 
-  const Chack = () => {
+  const Chack = ()=>{
     onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user.uid)
-      }
-    });
+  if (user) {
+  setUserUID(user.uid)
+  getData(user.uid) 
+  getDataFromDatabase(user.uid)      
+  }else{
+    console.log('fail');
   }
-  useEffect(() => {
+  });
+  }
+  useEffect(()=>{
     Chack()
-  }, [])
-
-  function getData() {
-    var reference = ref(DB, `UsersDetails/${user}`)
-    onChildAdded(reference, function (data) {
-      rander1(data.val())
-    })
-  }
-  const rander1 = (data) => {
-    if (data) {
-      setData(data)
+    },[])
+  
+  
+    function getData(uid){
+      var reference = ref(DB,`UsersDetails/${uid}`)
+      onChildAdded(reference,function(data){
+        rander1(data.val())
+      })
     }
-  }
-  useEffect(() => {
-    getData()
-  }, [])
-  console.log(todos, "todos");
-
-  const addTodoHandler = () => {
-    if (!inpValue) {
-      alert('Enter Data');
-    } else {
+  const rander1 = (data)=>{
+    if(data){
+      setData(pre=>[...pre,data])
+    }
+      }
+  
+      function getDataFromDatabase(uid){
+        // console.log(uid);
+        var reference = ref(DB,`Todos/${uid}`)
+        onChildAdded(reference,function(data){
+          rander2(data.val())
+        })
+      }
+    const rander2 = (data)=>{
+      if(data){
+        setTodos(pre=>[...pre,data])
+      }
+        }
+        // console.log(todos);
+ 
+  const addTodoHandler= ()=>{
+    if(!inpValue){
+  alert('Enter Todos')
+    }else{
       const obj = {
-        todo: inpValue
+        todo:inpValue
       }
       const keyRef = ref(DB)
       const key = push(keyRef).key
       obj.id = key
-      const reference = ref(DB, `Todos/${obj.id}`)
+      const reference = ref(DB, `Todos/${userUID}/${obj.id}`)
       set(reference, obj)
-      setInpValue('')
-    }
-  };
-
-  function getDataFromDatabase() {
-    var reference = ref(DB, `Todos/${Data.uid}`)
-    onChildAdded(reference, function (data) {
-      rander2(data.val())
-    })
-  }
-  const rander2 = (data) => {
-    if (data) {
-      setTodos(pre => [...pre, data])
+  setInpValue('')
     }
   }
-  useEffect(() => {
-    getDataFromDatabase()
-  }, [Data])
-  console.log(Data, "datattaa");
-
-  const editBtn = (index) => {
-    const newTodo = prompt('Enter new Todo', todos[index].todo)
-    todos[index].todo = newTodo
-    const id = todos[index].id
-    const refrance = ref(DB, `Todos/${user}/${id}`)
-    update(refrance, {
-      todo: newTodo,
+  
+  const delBtn = (index)=>{
+ const delTodo = todos.filter((e,i)=>i!==index)
+ const id = todos[index].id
+  const refrance = ref(DB,`Todos/${userUID}/${id}`)
+  remove(refrance)
+  setTodos(delTodo)
+  }
+  
+  const editBtn = (index)=>{
+ const newTodo = prompt('Enter new Todo',todos[index].todo)
+  todos[index].todo = newTodo
+ const id = todos[index].id
+  const refrance = ref(DB,`Todos/${userUID}/${id}`)
+  update(refrance,{
+    todo:newTodo,
+  })
+  // console.log(newTodo);
+  setTodos((pre)=>[...pre])
+  }
+  
+  const SignOut = ()=>{
+  signOut(auth).then(() => {
+  localStorage.clear()
+  navigate('/')  
+  }).catch((error) => {
+      console.log(error);
     })
-    console.log(newTodo);
-    setTodos((pre) => [...pre])
-  }
-
-
-  const delBtn = (index) => {
-    let delTodo = todos.filter((e, i) => i !== index)
-    let id = todos[index].id
-    const refrance = ref(DB, `Todos/${user}/${id}`)
-    remove(refrance)
-    setTodos(delTodo)
-  }
-
-  const logOut = () => {
-    localStorage.clear();
-    navigate("/")
   }
   return (
     <>
@@ -113,24 +116,27 @@ const Todo = () => {
         <TodoInput onChange={(e) => setInpValue(e.target.value)} value={inpValue} />
         <AddTodo onClick={addTodoHandler} />
       </Box>
-      {todos.length ? todos.map((e, i) => (
+
+     
+
+       {todos.length ? todos.map((e, i) => (
         <Box className='TodoList' key={i}>
           <Box className='tododata'>
             <Tododata label={e.todo} />
             <EditButton onClick={() => editBtn(i)} />
             <DeleteButton onClick={() => delBtn(i)} />
           </Box>
-        </Box>)) : (<NoDataImage />)}
+        </Box>)) : (<NoDataImage />)} 
 
 
       <Box sx={{ marginTop: "100px" }}>
         <Box sx={{ marginTop: "10px", marginLeft: "20px", }}>
-          <Typography sx={{ fontSize: "20px" }}> First Name : {Data.firstName} </Typography>
-          <Typography sx={{ fontSize: "20px" }}> Last Name : {Data.lastName}</Typography>
-          <Typography sx={{ fontSize: "20px" }}> Email : {Data.email}</Typography>
+          <Typography sx={{ fontSize: "20px" }}> First Name : {Data[1]} </Typography>
+          <Typography sx={{ fontSize: "20px" }}> Last Name : {Data[2]}</Typography>
+          <Typography sx={{ fontSize: "20px" }}> Email : {Data[4]}</Typography>
         </Box>
         <Box>
-          <Button onClick={logOut} sx={{
+          <Button onClick={SignOut} sx={{
             cursor: "pointer",
             marginTop: "10px",
             marginLeft: "20px",
