@@ -1,0 +1,35 @@
+.main{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    text-align: center;
+    margin-top: 20px;
+  }
+body{
+    background-color: white;
+}
+  
+  .TodoList{
+    margin-top: 10px;
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+.tododata{
+  border: 1px solid black;
+  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 7px;
+  border-radius: 10px;
+  box-shadow: 0px 0px 06px black;
+  /* transition: 1s ease-in-out; */
+  background-color: white;
+
+}
+/* .tododata:hover{
+transform: scale(1.1);
+background-color: burlywood;
+color: black;
+} */

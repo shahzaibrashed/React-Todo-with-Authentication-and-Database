@@ -1,0 +1,12 @@
+.AddCircle{
+    color: cadetblue;
+    transition: 1s ease-in-out;
+    cursor: pointer;
+}
+.AddCircle:hover{
+    color: brown;
+    transform: scale(1.1);
+}
+span{
+    font-size: 30px;
+}
